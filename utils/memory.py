@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.multiprocessing as mp
 
-USE_CUDA = torch.cuda.is_available()
+USE_CUDA = False
 if USE_CUDA:
     FloatTensor = torch.cuda.FloatTensor
 else:

@@ -39,7 +39,7 @@ class PolicyWrapper:
         env_name = tmp.split('/')
         self.env_name = env_name[-1]
         self.team_name = fields[1]
-        self.policy_type = fields[2]
-        self.max_steps = int(fields[3])
+        self.policy_type = "fields[2]"
+        self.max_steps = 1000
         net = self.policy.load_model(filename)
         return net

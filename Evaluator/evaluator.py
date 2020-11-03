@@ -9,7 +9,7 @@ from Evaluator.environment import make_env
 from utils.generic_net import GenericNet
 from utils.policy_wrapper import PolicyWrapper
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
 def evaluate_pol(env, policy, deterministic):
     """

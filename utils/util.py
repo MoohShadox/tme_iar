@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 
-USE_CUDA = torch.cuda.is_available()
+USE_CUDA = False
 
 
 def prRed(prt):

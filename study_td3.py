@@ -13,7 +13,9 @@ from utils.random_process import *
 from utils.util import *
 from utils.memory import Memory, SharedMemory
 
-USE_CUDA = torch.cuda.is_available()
+#USE_CUDA = torch.cuda.is_available()
+USE_CUDA = False
+
 if USE_CUDA:
     FloatTensor = torch.cuda.FloatTensor
 else:

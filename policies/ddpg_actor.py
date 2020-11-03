@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List
 
 import torch
 import torch.nn as nn
@@ -6,7 +7,7 @@ import torch.nn.functional as F
 
 from utils.generic_net import GenericNet
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
 
 def hidden_init(layer):
@@ -43,15 +44,18 @@ class DDPG_Actor(GenericNet):
         """Build an actor (policy) network that maps states -> actions."""
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        return F.tanh(self.fc3(x))
+        return torch.tanh(self.fc3(x))
 
-    def select_action(self, state, deterministic=False):
+    @torch.jit.export
+    def select_action(self, state: List[float], deterministic: bool=False) -> List[float]:
         """
         Compute an action or vector of actions given a state or vector of states
         :param state: the input state(s)
         :param deterministic: whether the policy should be considered deterministic or not
         :return: the resulting action(s)
         """
-        with torch.no_grad():
-            action = self(state).cpu().data.numpy()
-        return np.clip(action, -1, 1)
+        state = torch.tensor(state)
+        action = self.forward(state)
+        #action = np.clip(action,-1,1)
+        act: List[float] = action.data.tolist()
+        return act

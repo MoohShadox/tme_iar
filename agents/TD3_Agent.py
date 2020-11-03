@@ -9,8 +9,9 @@ from tqdm import tqdm
 from critics.td3_critic import TD3_Critic
 from policies.td3_actor import TD3_Actor
 from utils.policy_wrapper import PolicyWrapper
-
-if torch.cuda.is_available():
+#USE_CUDA = torch.cuda.is_available()
+USE_CUDA = False
+if USE_CUDA:
     FloatTensor = torch.cuda.FloatTensor
 else:
     FloatTensor = torch.FloatTensor
@@ -169,7 +170,7 @@ class DTD3(object):
             self.critic.parameters(), lr=args.critic_lr)
 
         # cuda
-        if torch.cuda.is_available():
+        if USE_CUDA:
             for i in range(self.n):
                 self.actors[i] = self.actors[i].cuda()
                 self.actors_target[i] = self.actors_target[i].cuda()
@@ -256,5 +257,7 @@ class DTD3(object):
         self.critic.save_model(output, "critic")
 
     def store_policy(self,env_name,score,index=0):
-        pw = PolicyWrapper(self.actors[index], "TD3", env_name, "TEAM7", 10)
-        pw.save(score)
+        #pw = PolicyWrapper(self.actors[index], "TD3", env_name, "TEAM7", 10)
+        #pw.save(score)
+        traced = torch.jit.script(self.actors[index])
+        torch.jit.save(traced, "data/policies/#"+"TD3Agent"+str(env_name)+"#"+str(score)+".zip")
