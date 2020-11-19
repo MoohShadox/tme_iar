@@ -10,9 +10,9 @@ from agents.DDPG_Agent import DDPG_Agent
 # Press the green button in the gutter to run the script.
 
 
-def ddpg(n_episodes=2000, max_t=200, print_every=200):
+def ddpg(n_episodes=2000, max_t=200, print_every=200, state_size=3, action_size = 1):
     scores_deque = deque(maxlen=print_every)
-    agent = DDPG_Agent(state_size=3, action_size=1, random_seed=2)
+    agent = DDPG_Agent(state_size=state_size, action_size=action_size, random_seed=2)
     scores = []
     for i_episode in range(1, n_episodes + 1):
         state = env.reset()
@@ -45,9 +45,12 @@ def ddpg(n_episodes=2000, max_t=200, print_every=200):
 
 
 if __name__ == '__main__':
-    env = gym.make('Pendulum-v0')
+    env = gym.make('MountainCarContinuous-v0')
     env.seed(2)
-    scores = ddpg()
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = int(env.action_space.high[0])
+    scores = ddpg(state_size=state_dim,action_size=action_dim)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
