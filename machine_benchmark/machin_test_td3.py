@@ -99,7 +99,6 @@ if __name__ == "__main__":
                     noise_param=noise_param,
                     mode=noise_mode
                 )
-                print("action = ",action)
 
                 state, reward, terminal, _ = env.step(action.numpy())
                 state = t.tensor(state, dtype=t.float32).view(1, observe_dim)
@@ -131,5 +130,5 @@ if __name__ == "__main__":
                 exit(0)
         else:
             reward_fulfilled = 0
-        traced = torch.jit.script(actor_t)
-        torch.jit.save(traced, "data/policies/#"+"VTD3"+str("ffvfv")+"#"+str("1000")+".zip")
+    traced = torch.jit.script(actor_t)
+    torch.jit.save(traced, "data/policies/#"+"VTD3"+str("ffvfv")+"#"+str("1000")+".zip")

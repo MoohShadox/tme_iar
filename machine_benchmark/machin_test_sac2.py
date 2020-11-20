@@ -1,6 +1,6 @@
 from itertools import count
 from typing import List
-
+import numpy as np
 import torch
 from machin.frame.algorithms import SAC
 from machin.utils.logging import default_logger as logger
@@ -9,8 +9,6 @@ from torch.distributions import Normal
 import torch as t
 import torch.nn as nn
 import gym
-import numpy as np
-
 import pandas as pd
 # configurations
 env = gym.make("Pendulum-v0")
@@ -37,21 +35,34 @@ class Actor(nn.Module):
         self.fc2 = nn.Linear(16, 16)
         self.mu_head = nn.Linear(16, action_dim)
         self.sigma_head = nn.Linear(16, action_dim)
+        self.mu_head_2 = nn.Linear(16, action_dim)
+        self.sigma_head_2 = nn.Linear(16, action_dim)
+        self.pi = nn.Linear(16, 1)
         self.action_range = action_range
 
     def forward(self, state, action=None):
         a = t.relu(self.fc1(state))
         a = t.relu(self.fc2(a))
+
         mu = self.mu_head(a)
         sigma = softplus(self.sigma_head(a))
+
+        mu2 = self.mu_head_2(a)
+        sigma2 = softplus(self.sigma_head(a))
+
         dist = Normal(mu, sigma)
-        act = (atanh(action / self.action_range)
-               if action is not None
-               else dist.rsample())
-        act_entropy = dist.entropy()
-        # the suggested way to confine your actions within a valid range
-        # is not clamping, but remapping the distribution
-        act_log_prob = dist.log_prob(act)
+        dist2 = Normal(mu2, sigma2)
+
+        pi = t.sigmoid(self.pi(a))
+        act1, act2 = None, None
+        if(action is not None):
+            act = (atanh(action / self.action_range))
+        else:
+            act1 = dist.rsample()
+            act2 = dist2.rsample()
+            act = pi*act1 + (1-pi)*act2
+        act_entropy = dist.entropy()+dist2.entropy()
+        act_log_prob = dist.log_prob(act1) + dist2.log_prob(act2) if (act1!=None and act2!=None) else dist.log_prob(act) + dist2.log_prob(act)
         act_tanh = t.tanh(act)
         act = act_tanh * self.action_range
         # the distribution remapping process used in the original essay.
@@ -90,8 +101,6 @@ class Critic(nn.Module):
         q = self.fc3(q)
         return q
 
-
-
 def evaluate_pol(env, policy, deterministic):
     """
     Function to evaluate a policy over 900 episodes
@@ -116,6 +125,10 @@ def evaluate_pol(env, policy, deterministic):
     scores = np.array(scores)
     print( "mean: ", scores.mean(), "std:", scores.std())
     return scores
+
+
+
+
 
 if __name__ == "__main__":
     actor = Actor(observe_dim, action_dim, action_range)
@@ -158,12 +171,9 @@ if __name__ == "__main__":
                     "reward": reward[0],
                     "terminal": terminal or step == max_steps
                 })
-
-        # update, update more if episode is longer, else less
         if episode > 100:
             for _ in range(step):
                 sac.update()
-
         # show reward
         smoothed_total_reward = (smoothed_total_reward * 0.9 +
                                  total_reward * 0.1)
@@ -177,14 +187,11 @@ if __name__ == "__main__":
                 logger.info("Environment solved!")
                 evaluate_pol(env, actor, False)
                 df = pd.DataFrame(D)
-                df.to_csv("SAC_logs.csv")
+                df.to_csv("SAC2_logs.csv")
                 exit(0)
         else:
             reward_fulfilled = 0
-    evaluate_pol(env, actor, False)
-    df=pd.DataFrame(D)
-    df.to_csv("SAC_logs.csv")
-    print(df)
+
         #traced = torch.jit.script(actor)
         #torch.jit.save(traced, "data/policies/#" + "SAC3" + str("ffvfv") + "#" + str("1000") + ".zip")
 
