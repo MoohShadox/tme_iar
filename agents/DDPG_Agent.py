@@ -4,7 +4,6 @@ import random
 import copy
 from collections import namedtuple, deque
 
-
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -45,6 +44,7 @@ class DDPG_Agent():
         self.action_size = action_size
         self.seed = random.seed(random_seed)
 
+        
         # Actor Network (w/ Target Network)
         self.actor_local = DDPG_Actor(state_size, action_size, random_seed).to(device)
         self.actor_target = DDPG_Actor(state_size, action_size, random_seed).to(device)
@@ -107,6 +107,7 @@ class DDPG_Agent():
         # Compute critic loss
         Q_expected = self.critic_local(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
+
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
@@ -116,6 +117,14 @@ class DDPG_Agent():
         # Compute actor loss
         actions_pred = self.actor_local(states)
         actor_loss = -self.critic_local(states, actions_pred).mean()
+        
+        #tmp = np.array((critic_loss.item(), actor_loss.item()))
+        #print(tmp)
+        actions_pred_t = self.actor_target(states)
+        actor_loss_t = -self.critic_target(states, actions_pred_t).mean()
+        with open("save_losses.csv", "a") as f:
+            #tmp = str(critic_loss.item()) + ";" + str(actor_loss.item()) + "\n"
+            f.write(str(critic_loss.item()) + ";" + str(actor_loss_t.item()) + "\n")
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()

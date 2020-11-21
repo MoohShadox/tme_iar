@@ -1,4 +1,3 @@
-
 import gym
 import random
 import torch
@@ -10,7 +9,7 @@ from agents.DDPG_Agent import DDPG_Agent
 # Press the green button in the gutter to run the script.
 
 
-def ddpg(n_episodes=2000, max_t=200, print_every=200, state_size=3, action_size = 1):
+def ddpg(n_episodes=20, max_t=200, print_every=2, state_size=3, action_size = 1):
     scores_deque = deque(maxlen=print_every)
     agent = DDPG_Agent(state_size=state_size, action_size=action_size, random_seed=2)
     scores = []
@@ -18,7 +17,7 @@ def ddpg(n_episodes=2000, max_t=200, print_every=200, state_size=3, action_size 
         state = env.reset()
         agent.reset()
         score = 0
-        for t in range(max_t):
+        for _ in range(max_t):
             action = agent.act(state)
             next_state, reward, done, _ = env.step(action)
             agent.step(state, action, reward, next_state, done)
@@ -38,24 +37,27 @@ def ddpg(n_episodes=2000, max_t=200, print_every=200, state_size=3, action_size 
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_deque)))
 
 
-
+    
     return scores
 
 
 
 
 if __name__ == '__main__':
-    env = gym.make('MountainCarContinuous-v0')
+    env = gym.make('Pendulum-v0')
     env.seed(2)
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = int(env.action_space.high[0])
     scores = ddpg(state_size=state_dim,action_size=action_dim)
-
+    with open("save_ep-rewards.csv", "a") as f:
+        for i in range(len(scores)):
+            f.write(str(i+1) + ";" + str(scores[i]) + "\n")
     fig = plt.figure()
     ax = fig.add_subplot(111)
     plt.plot(np.arange(1, len(scores) + 1), scores)
     plt.ylabel('Score')
     plt.xlabel('Episode #')
     plt.show()
+
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
