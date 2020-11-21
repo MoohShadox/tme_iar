@@ -21,7 +21,7 @@ max_episodes = 500
 max_steps = 200
 noise_param = (0, 0.2)
 noise_mode = "normal"
-solved_reward = -130
+solved_reward = -150
 solved_repeat = 5
 
 
@@ -33,12 +33,13 @@ def atanh(x):
 class Actor(nn.Module):
     def __init__(self, state_dim, action_dim, action_range):
         super(Actor, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 16)
-        self.fc2 = nn.Linear(16, 16)
-        self.mu_head = nn.Linear(16, action_dim)
-        self.sigma_head = nn.Linear(16, action_dim)
+        self.fc1 = nn.Linear(state_dim, 640)
+        self.fc2 = nn.Linear(640, 1280)
+        self.mu_head = nn.Linear(1280, action_dim)
+        self.sigma_head = nn.Linear(1280, action_dim)
         self.action_range = action_range
 
+    @torch.jit.unused
     def forward(self, state, action=None):
         a = t.relu(self.fc1(state))
         a = t.relu(self.fc2(a))
@@ -101,7 +102,7 @@ def evaluate_pol(env, policy, deterministic):
     :return: the obtained vector of 900 scores
     """
     scores = []
-    for i in range(450):
+    for i in range(900):
         # env.render(mode='rgb_array')
         total_reward = 0
         state = t.tensor(env.reset(), dtype=t.float32).view(1, observe_dim)
@@ -181,10 +182,5 @@ if __name__ == "__main__":
                 exit(0)
         else:
             reward_fulfilled = 0
-    evaluate_pol(env, actor, False)
-    df=pd.DataFrame(D)
-    df.to_csv("SAC_logs.csv")
-    print(df)
-        #traced = torch.jit.script(actor)
-        #torch.jit.save(traced, "data/policies/#" + "SAC3" + str("ffvfv") + "#" + str("1000") + ".zip")
+
 

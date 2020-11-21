@@ -19,7 +19,7 @@ max_episodes = 500
 max_steps = 200
 noise_param = (0, 0.2)
 noise_mode = "normal"
-solved_reward = -130
+solved_reward = -150
 solved_repeat = 5
 
 
@@ -31,13 +31,17 @@ def atanh(x):
 class Actor(nn.Module):
     def __init__(self, state_dim, action_dim, action_range):
         super(Actor, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 16)
-        self.fc2 = nn.Linear(16, 16)
-        self.mu_head = nn.Linear(16, action_dim)
-        self.sigma_head = nn.Linear(16, action_dim)
-        self.mu_head_2 = nn.Linear(16, action_dim)
-        self.sigma_head_2 = nn.Linear(16, action_dim)
-        self.pi = nn.Linear(16, 1)
+        self.fc1 = nn.Linear(state_dim, 640)
+        self.fc2 = nn.Linear(640, 1280)
+
+        self.mu_head = nn.Linear(1280, action_dim)
+        self.sigma_head = nn.Linear(1280, action_dim)
+
+        self.mu_head_2 = nn.Linear(1280, action_dim)
+        self.sigma_head_2 = nn.Linear(1280, action_dim)
+
+        self.pi = nn.Linear(1280, 1)
+
         self.action_range = action_range
 
     def forward(self, state, action=None):
@@ -145,9 +149,11 @@ if __name__ == "__main__":
     smoothed_total_reward = 0
     D = {
         "episode":[],
-        "reward":[]
+        "reward":[],
+
     }
     while episode < max_episodes:
+
         episode += 1
         total_reward = 0
         terminal = False
@@ -179,8 +185,10 @@ if __name__ == "__main__":
                                  total_reward * 0.1)
         logger.info("Episode {} total reward={:.2f}"
                     .format(episode, smoothed_total_reward))
+
         D["episode"].append(episode)
         D["reward"].append(smoothed_total_reward)
+
         if smoothed_total_reward > solved_reward:
             reward_fulfilled += 1
             if reward_fulfilled >= solved_repeat:
