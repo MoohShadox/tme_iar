@@ -32,7 +32,7 @@ def ddpg(n_episodes=20, max_t=200, print_every=2, state_size=3, action_size = 1)
         torch.save(agent.critic_local.state_dict(), 'checkpoint_critic.pth')
 
         if i_episode % print_every == 0:
-            agent.store_policy('Pendulum-v0', score=np.mean(scores_deque))
+            #agent.store_policy('Pendulum-v0', score=np.mean(scores_deque))
 
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_deque)))
 
@@ -52,12 +52,13 @@ if __name__ == '__main__':
     scores = ddpg(state_size=state_dim,action_size=action_dim)
     with open("save_ep-rewards.csv", "a") as f:
         for i in range(len(scores)):
-            f.write(str(i+1) + ";" + str(scores[i]) + "\n")
+            f.write(str(i+1) + "," + str(scores[i]) + "\n")
+    """
     fig = plt.figure()
     ax = fig.add_subplot(111)
     plt.plot(np.arange(1, len(scores) + 1), scores)
     plt.ylabel('Score')
     plt.xlabel('Episode #')
-    plt.show()
+    plt.show()"""
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

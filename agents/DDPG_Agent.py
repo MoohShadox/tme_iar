@@ -120,11 +120,14 @@ class DDPG_Agent():
         
         #tmp = np.array((critic_loss.item(), actor_loss.item()))
         #print(tmp)
-        actions_pred_t = self.actor_target(states)
-        actor_loss_t = -self.critic_target(states, actions_pred_t).mean()
-        with open("save_losses.csv", "a") as f:
-            #tmp = str(critic_loss.item()) + ";" + str(actor_loss.item()) + "\n"
-            f.write(str(critic_loss.item()) + ";" + str(actor_loss_t.item()) + "\n")
+        # --------------------------- for the plot ----------------------------- #
+        actions_pred_target = self.actor_target(states)
+        actor_loss_target = -self.critic_target(states, actions_pred_target).mean()
+        Q_expected_target = self.critic_target(states, actions)
+        critic_loss_target = F.mse_loss(Q_expected_target, Q_targets)
+        with open("saveDDPG_critic-actor_loss.csv", "a") as f:
+            tmp = str(critic_loss_target.item()) + "," + str(actor_loss_target.item()) + "\n"
+            f.write(tmp)
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
