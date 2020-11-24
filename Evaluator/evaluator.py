@@ -25,7 +25,6 @@ def evaluate_pol(env, policy, deterministic):
         # env.render(mode='rgb_array')
         # print("new episode")
         total_reward = 0
-
         for _ in count():
             action = policy.select_action(state, deterministic)
             next_state, reward, done, _ = env.step(action)
@@ -36,6 +35,44 @@ def evaluate_pol(env, policy, deterministic):
                 scores.append(total_reward)
                 break
     scores = np.array(scores)
+    return scores
+
+
+def evaluate_pol_gym(env, policy, deterministic):
+    """
+    Function to evaluate a policy over 900 episodes
+    :param env: the evaluation environment
+    :param policy: the evaluated policy
+    :param deterministic: whether the evaluation uses a deterministic policy
+    :return: the obtained vector of 900 scores
+    """
+    scores = []
+    stats = []
+    for i in range(1,1001):
+        state = env.reset()
+        # env.render(mode='rgb_array')
+        # print("new episode")
+        total_reward = 0
+        for _ in count():
+            action = policy.select_action(state, deterministic)
+            next_state, reward, done, _ = env.step(action)
+            total_reward += reward
+            state = next_state
+
+            if done:
+                scores.append(total_reward)
+                break
+        if(i%300 == 0):
+            scores = np.array(scores)
+            scores.sort()
+            scores = scores[-100:-1]
+            print("Mean of top 100 : ",scores.mean())
+            stats.append(scores.mean())
+            scores = []
+
+    scores = np.array(scores)
+    stats = np.array(stats)
+    print("Finally : mean = ",stats.mean()," std : ", stats.std())
     # print("team: ", policy.team_name, "mean: ", scores.mean(), "std:", scores.std())
     return scores
 

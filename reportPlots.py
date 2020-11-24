@@ -40,8 +40,8 @@ def plot_losses(filename):
             critics[i] = row[0]
             actors[i] = row[1]
             i+=1
-    actors = np.cumsum(actors)
-    critics = np.cumsum(critics)
+    #actors = np.cumsum(actors)
+    #critics = np.cumsum(critics)
     iterations = [i+1 for i in range(length)]
     plt.plot(iterations,actors, label = "actors loss sum")    
     plt.title("DDPG_Pendelum-V0")
@@ -51,7 +51,6 @@ def plot_losses(filename):
 
     #plt.savefig(path + '/../results/rewards_' + make_full_string(params) + '.pdf')
     plt.show()
-
 
     plt.plot(iterations,critics, label = "critics loss sum")    
     plt.title("DDPG_Pendelum-V0")

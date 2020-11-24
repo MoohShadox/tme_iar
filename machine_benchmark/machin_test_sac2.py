@@ -59,6 +59,7 @@ class Actor(nn.Module):
 
         pi = t.sigmoid(self.pi(a))
         act1, act2 = None, None
+
         if(action is not None):
             act = (atanh(action / self.action_range))
         else:

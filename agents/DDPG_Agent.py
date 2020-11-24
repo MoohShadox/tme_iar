@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
+from agents.Agent import Agent
 from critics.ddpg_critic import DDPG_Critic
 from policies.ddpg_actor import DDPG_Actor
 from utils.Noises import OUNoise
@@ -28,7 +29,7 @@ device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 
 
 
-class DDPG_Agent():
+class DDPG_Agent(Agent):
     """Interacts with and learns from the environment."""
     policy_type = "DDPG"
     def __init__(self, state_size, action_size, random_seed):
@@ -40,6 +41,7 @@ class DDPG_Agent():
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
+        super().__init__()
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
@@ -60,6 +62,12 @@ class DDPG_Agent():
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+        #Statistics
+        self.stats = {
+            "actor_loss":[],
+            "critic_loss":[],
+            "reward_sum":[],
+        }
 
     def step(self, state, action, reward, next_state, done):
         """Save experience in replay memory, and use random sample from buffer to learn."""
@@ -97,7 +105,6 @@ class DDPG_Agent():
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones = experiences
-
         # ---------------------------- update critic ---------------------------- #
         # Get predicted next-state actions and Q values from target models
         actions_next = self.actor_target(next_states)
@@ -121,13 +128,7 @@ class DDPG_Agent():
         #tmp = np.array((critic_loss.item(), actor_loss.item()))
         #print(tmp)
         # --------------------------- for the plot ----------------------------- #
-        actions_pred_target = self.actor_target(states)
-        actor_loss_target = -self.critic_target(states, actions_pred_target).mean()
-        Q_expected_target = self.critic_target(states, actions)
-        critic_loss_target = F.mse_loss(Q_expected_target, Q_targets)
-        with open("saveDDPG_critic-actor_loss.csv", "a") as f:
-            tmp = str(critic_loss_target.item()) + "," + str(actor_loss_target.item()) + "\n"
-            f.write(tmp)
+
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
@@ -135,7 +136,15 @@ class DDPG_Agent():
         # ----------------------- update target networks ----------------------- #
         self.soft_update(self.critic_local, self.critic_target, TAU)
         self.soft_update(self.actor_local, self.actor_target, TAU)
-
+        with torch.no_grad():
+            actions_pred_target = self.actor_target(states)
+            actor_loss_target = -self.critic_target(states, actions_pred_target).mean()
+            Q_expected_target = self.critic_target(states, actions)
+            critic_loss_target = F.mse_loss(Q_expected_target, Q_targets)
+            with open("saveDDPG_critic-actor_loss.csv", "a") as f:
+                tmp = str(critic_loss_target.item()) + "," + str(actor_loss_target.item()) + "\n"
+                f.write(tmp)
+            self.save_stats(actor_loss=actor_loss.item(), critic_loss=critic_loss.item(), reward_sum=rewards.sum().item())
 
     def store_policy(self,env_name,score):
         traced = torch.jit.script(self.actor_target)

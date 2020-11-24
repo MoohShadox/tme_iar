@@ -100,7 +100,6 @@ if __name__ == "__main__":
                 state, reward, terminal, _ = env.step(action.numpy())
                 state = t.tensor(state, dtype=t.float32).view(1, observe_dim)
                 total_reward += reward[0]
-
                 ddpg.store_transition({
                     "state": {"state": old_state},
                     "action": {"action": action},

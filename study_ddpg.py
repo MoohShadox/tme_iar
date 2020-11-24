@@ -9,7 +9,8 @@ from agents.DDPG_Agent import DDPG_Agent
 # Press the green button in the gutter to run the script.
 
 
-def ddpg(n_episodes=20, max_t=200, print_every=2, state_size=3, action_size = 1):
+def ddpg(n_episodes=1500, max_t=200, print_every=200, state_size=3, action_size = 1):
+    env = gym.make('Pendulum-v0')
     scores_deque = deque(maxlen=print_every)
     agent = DDPG_Agent(state_size=state_size, action_size=action_size, random_seed=2)
     scores = []
@@ -35,9 +36,6 @@ def ddpg(n_episodes=20, max_t=200, print_every=2, state_size=3, action_size = 1)
             #agent.store_policy('Pendulum-v0', score=np.mean(scores_deque))
 
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_deque)))
-
-
-    
     return scores
 
 

@@ -21,7 +21,7 @@ max_episodes = 500
 max_steps = 200
 noise_param = (0, 0.2)
 noise_mode = "normal"
-solved_reward = -150
+solved_reward = -140
 solved_repeat = 5
 
 
@@ -33,10 +33,10 @@ def atanh(x):
 class Actor(nn.Module):
     def __init__(self, state_dim, action_dim, action_range):
         super(Actor, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 640)
-        self.fc2 = nn.Linear(640, 1280)
-        self.mu_head = nn.Linear(1280, action_dim)
-        self.sigma_head = nn.Linear(1280, action_dim)
+        self.fc1 = nn.Linear(state_dim, 320)
+        self.fc2 = nn.Linear(320, 640)
+        self.mu_head = nn.Linear(640, action_dim)
+        self.sigma_head = nn.Linear(640, action_dim)
         self.action_range = action_range
 
     @torch.jit.unused
@@ -91,6 +91,45 @@ class Critic(nn.Module):
         q = self.fc3(q)
         return q
 
+def evaluate_pol_gym(env, policy, deterministic):
+    """
+    Function to evaluate a policy over 900 episodes
+    :param env: the evaluation environment
+    :param policy: the evaluated policy
+    :param deterministic: whether the evaluation uses a deterministic policy
+    :return: the obtained vector of 900 scores
+    """
+    scores = []
+    stats = []
+    for i in range(1,1001):
+        state = env.reset()
+
+        # env.render(mode='rgb_array')
+        # print("new episode")
+        total_reward = 0
+        for _ in count():
+            state = t.tensor(state, dtype=t.float32).view(1, observe_dim)
+            action = policy.select_action(state, deterministic)
+            next_state, reward, done, _ = env.step(action)
+            state = t.tensor(next_state, dtype=t.float32).view(1, observe_dim)
+            total_reward += reward
+            if done:
+                scores.append(total_reward)
+                break
+        if(i%300 == 0):
+            scores = np.array(scores)
+            scores.sort()
+            scores = scores[-100:-1]
+            print("Mean of top 100 : ",scores.mean())
+
+            stats.append(scores.mean())
+            scores = []
+
+    scores = np.array(scores)
+    stats = np.array(stats)
+    print("Finally : mean = ",stats.mean()," std : ", stats.std())
+    # print("team: ", policy.team_name, "mean: ", scores.mean(), "std:", scores.std())
+    return scores
 
 
 def evaluate_pol(env, policy, deterministic):
@@ -176,7 +215,7 @@ if __name__ == "__main__":
             reward_fulfilled += 1
             if reward_fulfilled >= solved_repeat:
                 logger.info("Environment solved!")
-                evaluate_pol(env, actor, False)
+                evaluate_pol_gym(env, actor, False)
                 df = pd.DataFrame(D)
                 df.to_csv("SAC_logs.csv")
                 exit(0)
