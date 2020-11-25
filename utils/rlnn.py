@@ -16,7 +16,7 @@ else:
     FloatTensor = torch.FloatTensor
 
 
-class RLNN(nn.Module):
+class RLNN(GenericNet):
 
     def __init__(self, state_dim, action_dim, max_action):
         super(RLNN, self).__init__()

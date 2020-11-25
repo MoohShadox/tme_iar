@@ -1,9 +1,16 @@
+import random
+
+import gym
+import torch as t
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+
+
 class Agent():
     """Interacts with and learns from the environment."""
     policy_type = "UNKNOWN"
-
     def __init__(self):
         """Initialize an Agent object.
 
@@ -14,6 +21,9 @@ class Agent():
             random_seed (int): random seed
         """
         self.stats = {}
+
+    def get_actor_to_plot(self,*args):
+        pass
 
     def save_stats(self,**kwargs):
         for kw,val in kwargs.items():

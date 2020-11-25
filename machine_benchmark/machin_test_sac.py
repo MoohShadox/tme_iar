@@ -21,7 +21,7 @@ max_episodes = 500
 max_steps = 200
 noise_param = (0, 0.2)
 noise_mode = "normal"
-solved_reward = -140
+solved_reward = -1000
 solved_repeat = 5
 
 
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
     sac = SAC(actor, critic, critic_t, critic2, critic2_t,
               t.optim.Adam,
-              nn.MSELoss(reduction='sum'))
+              nn.MSELoss(reduction='sum'),visualize=True)
 
     episode, step, reward_fulfilled = 0, 0, 0
     smoothed_total_reward = 0
@@ -190,7 +190,6 @@ if __name__ == "__main__":
                 state, reward, terminal, _ = env.step(action.numpy())
                 state = t.tensor(state, dtype=t.float32).view(1, observe_dim)
                 total_reward += reward[0]
-
                 sac.store_transition({
                     "state": {"state": old_state},
                     "action": {"action": action},
@@ -200,7 +199,7 @@ if __name__ == "__main__":
                 })
 
         # update, update more if episode is longer, else less
-        if episode > 100:
+        if episode > 5:
             for _ in range(step):
                 sac.update()
 

@@ -206,7 +206,12 @@ class DTD3(Agent):
         self.noise_clip = noise_clip
         self.policy_freq = policy_freq
 
-    def train(self, iterations, actor_index):
+    def get_actor_to_plot(self,*args):
+        if(args[0]<len(self.actors)):
+            return self.actors[args[0]]
+        return self.actors[0]
+
+    def train(self, iterations, actor_index,animate=False):
 
         for it in tqdm(range(iterations)):
 
@@ -277,9 +282,12 @@ class DTD3(Agent):
                     Q1, Q2 = self.critic(states, self.actors[actor_index](states))
                     Q3 = torch.min(Q1, Q2)
                     actor_loss = -Q3.mean()
-                self.save_stats(actor=actor_index, critic_loss=critic_loss.item(), actor_loss=actor_loss.item(),
+                    self.save_stats(actor=actor_index, critic_loss=critic_loss.item(), actor_loss=actor_loss.item(),
                                 reward_sum=rewards.sum().item())
-
+        if(animate):
+            with torch.no_grad():
+                map = self.actors[actor_index].getHeatMap()
+                self.save_stats(heatmap = map)
 
     def load(self, filename):
         for i in range(self.n):

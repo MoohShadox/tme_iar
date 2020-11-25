@@ -88,6 +88,7 @@ def train(agent,n_episodes, max_steps, debug=False, render=False, ou_noise = "ou
           n_actor = 1,
           n_eval = 1,
           training_per_agent = 100,
+          animate=False,
           ):
     """
     Train the whole process
@@ -121,7 +122,7 @@ def train(agent,n_episodes, max_steps, debug=False, render=False, ou_noise = "ou
             prCyan('noisy RL agent fitness:{}'.format(f))
 
         for i in range(n_actor):
-            agent.train(training_per_agent, i)
+            agent.train(training_per_agent, i,animate = animate)
 
 
         # saving models and scores
